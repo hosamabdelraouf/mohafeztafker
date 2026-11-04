@@ -1318,7 +1318,7 @@ function Industries() {
 
         {/* Left Column: Vertical Carousel Wheel with scrolling bar on the LEFT of the cards */}
         <div
-          className="delaminate-card delaminate-stagger-2 relative flex w-full max-w-[540px] flex-col gap-3.5 pe-8 ps-1"
+          className="delaminate-card delaminate-stagger-2 relative flex w-full max-w-[540px] flex-col items-end gap-3.5 pe-8 ps-1"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onWheel={handleWheel}
@@ -1349,7 +1349,7 @@ function Industries() {
                 }}
                 onClick={() => changeActive(idx)}
                 onMouseEnter={() => changeActive(idx)}
-                className={`group flex cursor-pointer items-center justify-between gap-4 border border-[#CCD6E0] px-5 transition-all duration-300 ease-out select-none ${
+                className={`group flex cursor-pointer items-center justify-between gap-4 border border-[#CCD6E0] px-5 transition-all duration-300 ease-out select-none self-end mr-auto ${
                   isActive
                     ? "h-[148px] w-full max-w-[510px] rounded-[32px] bg-primary text-white shadow-xl shadow-sky-600/30 ring-1 ring-white/30"
                     : "h-[102px] w-full max-w-[420px] rounded-[28px] bg-white text-slate-800 hover:border-sky-300 hover:bg-slate-50/80"
