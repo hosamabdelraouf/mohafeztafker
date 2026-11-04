@@ -58,13 +58,27 @@ export function meta() {
 }
 
 const A = "https://api.builder.io/api/v1/image/assets/TEMP/";
+
+const getBasePath = () => {
+  if (typeof window !== "undefined") {
+    if (window.location.pathname.startsWith("/mohafeztafker")) {
+      return "/mohafeztafker";
+    }
+  }
+  if (typeof process !== "undefined" && process.env?.GITHUB_PAGES === "true") {
+    return "/mohafeztafker";
+  }
+  const b = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+  return b && b !== "/" ? b : "";
+};
+
 const withBase = (p: string) => {
   if (!p) return "";
   if (p.startsWith("http://") || p.startsWith("https://")) return p;
   if (p.startsWith("/mohafeztafker/")) return p;
-  const b = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+  const base = getBasePath();
   const clean = p.replace(/^\//, "");
-  return b ? `${b}/${clean}` : `/${clean}`;
+  return base ? `${base}/${clean}` : `/${clean}`;
 };
 const IMG = {
   logo: `${A}4fc341c99cb92269986cd1da4c23dd3608f83bba?width=198`,
@@ -256,6 +270,13 @@ const services = [
 const work = [
   { tag: "سلاسل الإمداد والخدمات اللوجستية", t: "منصة إدارة حركة الشحن والتوزيع المركزية", img: `${A}99b766d6d2afaf2ff4426215ff837924d331b4bc?width=960` },
   { tag: "التقنية المالية والمصرفية (FinTech)", t: "تطبيق الاستثمار وإدارة المحافظ التلقائية", img: `${A}314e6cdd8b0630745c02b043bc6b0892bfce836d?width=960` },
+];
+
+const TEAM_CARDS = [
+  "/assets/team/card-2.png",
+  "/assets/team/card-1.png",
+  "/assets/team/card-3.png",
+  "/assets/team/card-4.png",
 ];
 
 const team = [
@@ -634,10 +655,28 @@ function IconVolumeSvg({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-const visionVideos = [
-  { step: 0, title: "الرؤية", subtitle: "رؤية محفز التفكير السيادية", src: withBase("/videos/vision-1.mp4") },
-  { step: 1, title: "المهمة", subtitle: "مهمة بناء المنصات المؤسسية", src: withBase("/videos/vision-2.mp4") },
-  { step: 2, title: "الهدف", subtitle: "هدف السيادة والريادة التقنية", src: withBase("/videos/vision-3.mp4") },
+function IconVolumeOffSvg({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <line x1="23" y1="9" x2="17" y2="15" />
+      <line x1="17" y1="9" x2="23" y2="15" />
+    </svg>
+  );
+}
+
+const VISION_VIDEO_DATA = [
+  { step: 0, title: "الرؤية", subtitle: "رؤية محفز التفكير السيادية", path: "/videos/vision-1.mp4" },
+  { step: 1, title: "المهمة", subtitle: "مهمة بناء المنصات المؤسسية", path: "/videos/vision-2.mp4" },
+  { step: 2, title: "الهدف", subtitle: "هدف السيادة والريادة التقنية", path: "/videos/vision-3.mp4" },
 ];
 
 function Vision() {
@@ -646,6 +685,13 @@ function Vision() {
   const [isFading, setIsFading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+
+  const visionVideos = VISION_VIDEO_DATA.map((v) => ({
+    ...v,
+    src: withBase(v.path),
+  }));
 
   const bodies = [
     "انطلقت محفز التفكير برؤية حاسمة تهدف لتسليم شفرات برمجية نقية ومملوكة للمنشأة بنسبة 100%، وتوطين كامل البيانات والعمليات الحيوية داخل مراكز بيانات المملكة مع الامتثال الصارم لضوابط NCA وPDPL.",
@@ -671,40 +717,72 @@ function Vision() {
     handleStepTransition(next);
   }, [step, handleStepTransition]);
 
-  // Play video with sound ONLY when scrolled to (inView is true), pause when scrolled away
+  // Play video reliably when scrolled to (inView is true), pause when scrolled away
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (inView) {
-      video.muted = false;
-      video.volume = 1.0;
-      video.load();
+      if (hasUserInteracted) {
+        video.muted = false;
+        video.volume = 1.0;
+      } else {
+        video.muted = true;
+      }
+
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => setIsPlaying(true))
+          .then(() => {
+            setIsPlaying(true);
+            setIsMuted(video.muted);
+          })
           .catch(() => {
-            // If browser blocks unmuted autoplay before user interaction, stay ready for click
-            setIsPlaying(false);
+            // Autoplay with audio was rejected by browser policy.
+            // Fall back immediately to muted playback so the video plays visually without interruption
+            video.muted = true;
+            setIsMuted(true);
+            video.play()
+              .then(() => setIsPlaying(true))
+              .catch(() => setIsPlaying(false));
           });
       }
     } else {
       video.pause();
       setIsPlaying(false);
     }
-  }, [step, inView]);
+  }, [step, inView, hasUserInteracted]);
 
   const togglePlay = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = false;
-    videoRef.current.volume = 1.0;
-    if (videoRef.current.paused) {
-      videoRef.current.play();
+    const video = videoRef.current;
+    if (!video) return;
+    setHasUserInteracted(true);
+    if (video.paused) {
+      video.play().then(() => setIsPlaying(true)).catch(() => {
+        video.muted = true;
+        setIsMuted(true);
+        video.play();
+      });
       setIsPlaying(true);
     } else {
-      videoRef.current.pause();
+      video.pause();
       setIsPlaying(false);
+    }
+  };
+
+  const toggleSound = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+    setHasUserInteracted(true);
+    if (video.muted) {
+      video.muted = false;
+      video.volume = 1.0;
+      setIsMuted(false);
+      video.play().catch(() => {});
+    } else {
+      video.muted = true;
+      setIsMuted(true);
     }
   };
 
@@ -831,6 +909,7 @@ function Vision() {
               key={visionVideos[step].src}
               src={visionVideos[step].src}
               playsInline
+              preload="auto"
               loop
               className="h-full w-full object-cover object-center"
               onPlay={() => setIsPlaying(true)}
@@ -860,8 +939,8 @@ function Vision() {
               </button>
             </div>
 
-            {/* Stage bottom info bar */}
-            <div className="pointer-events-none absolute bottom-2.5 inset-x-2.5 flex items-center justify-between rounded-lg bg-black/60 px-3 py-1.5 text-white backdrop-blur-md border border-white/10">
+            {/* Stage bottom info bar with Sound Toggle */}
+            <div className="absolute bottom-2.5 inset-x-2.5 flex items-center justify-between rounded-lg bg-black/60 px-3 py-1.5 text-white backdrop-blur-md border border-white/10 z-20">
               <span className="font-ar flex items-center gap-1.5 text-[11px] font-bold">
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
@@ -870,10 +949,23 @@ function Vision() {
                 />
                 {heads[step]}
               </span>
-              <span className="font-ar text-[10px] text-slate-300 flex items-center gap-1.5">
-                <IconVolumeSvg className="h-3.5 w-3.5 text-sky-400" />
-                {isPlaying ? "جاري التشغيل بالصوت" : "انقر للتشغيل بالصوت"}
-              </span>
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="font-ar text-[11px] text-slate-200 hover:text-white flex items-center gap-1.5 cursor-pointer bg-white/10 hover:bg-white/20 px-2.5 py-0.5 rounded transition"
+              >
+                {isMuted ? (
+                  <>
+                    <IconVolumeOffSvg className="h-3.5 w-3.5 text-amber-400" />
+                    <span>انقر لتشغيل الصوت</span>
+                  </>
+                ) : (
+                  <>
+                    <IconVolumeSvg className="h-3.5 w-3.5 text-sky-400" />
+                    <span>جاري التشغيل بالصوت</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -1461,7 +1553,8 @@ function Work() {
 
 function Team() {
   const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
-  const list = [...team, ...team, ...team];
+  const teamList = TEAM_CARDS.map(withBase);
+  const list = [...teamList, ...teamList, ...teamList];
   return (
     <section
       id="team"

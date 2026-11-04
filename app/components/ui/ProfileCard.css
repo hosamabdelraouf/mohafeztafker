@@ -205,8 +205,6 @@
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  mask-image: -webkit-radial-gradient(white, black);
 }
 
 .profile-card__scrim {

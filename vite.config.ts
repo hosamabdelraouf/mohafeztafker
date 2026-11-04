@@ -11,6 +11,9 @@ const isGithubPages = process.env.GITHUB_PAGES === "true";
 
 export default defineConfig({
   base: isGithubPages ? "/mohafeztafker/" : "/",
+  define: {
+    "import.meta.env.BASE_URL": JSON.stringify(isGithubPages ? "/mohafeztafker/" : "/"),
+  },
   optimizeDeps: {
     entries: [
       "app/entry.client.tsx",

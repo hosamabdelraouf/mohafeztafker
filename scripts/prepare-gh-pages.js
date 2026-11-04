@@ -22,6 +22,7 @@ function patchHtml(htmlContent) {
     )
     .replace(/href="\/assets\//g, 'href="/mohafeztafker/assets/')
     .replace(/src="\/assets\//g, 'src="/mohafeztafker/assets/')
+    .replace(/src="\/videos\//g, 'src="/mohafeztafker/videos/')
     .replace(/href="\/favicon\.svg"/g, 'href="/mohafeztafker/favicon.svg"')
     .replace(/href="\/icon-180\.svg"/g, 'href="/mohafeztafker/icon-180.svg"')
     .replace(/from "\/assets\//g, 'from "/mohafeztafker/assets/')
@@ -37,7 +38,7 @@ fs.writeFileSync(target404, patchedHtml, "utf8");
 fs.writeFileSync(path.join(clientDir, "mohafeztafker", "index.html"), patchedHtml, "utf8");
 fs.writeFileSync(nojekyll, "");
 
-// 2. Patch CSS files (fonts and background urls)
+// 2. Patch CSS and JS files in assets
 const assetsDir = path.join(clientDir, "assets");
 if (fs.existsSync(assetsDir)) {
   for (const file of fs.readdirSync(assetsDir)) {
@@ -49,10 +50,16 @@ if (fs.existsSync(assetsDir)) {
         .replace(/url\("\/assets\//g, 'url("/mohafeztafker/assets/')
         .replace(/url\('\/assets\//g, "url('/mohafeztafker/assets/");
       fs.writeFileSync(fullPath, css, "utf8");
-    } else if (file.startsWith("manifest-") && file.endsWith(".js")) {
-      // Patch manifest file chunk mapping
+    } else if (file.endsWith(".js")) {
       let js = fs.readFileSync(fullPath, "utf8");
-      js = js.replace(/(?<!\/mohafeztafker)\/assets\//g, "/mohafeztafker/assets/");
+      // Replace un-prefixed local assets and videos in compiled JS without touching builder.io
+      js = js
+        .replace(/(?<!\/mohafeztafker)(?<!builder\.io\/api\/v1\/image)\/assets\/team\//g, "/mohafeztafker/assets/team/")
+        .replace(/(?<!\/mohafeztafker)(?<!builder\.io\/api\/v1\/image)\/assets\/partners\//g, "/mohafeztafker/assets/partners/")
+        .replace(/(?<!\/mohafeztafker)\/videos\//g, "/mohafeztafker/videos/");
+      if (file.startsWith("manifest-")) {
+        js = js.replace(/(?<!\/mohafeztafker)\/assets\//g, "/mohafeztafker/assets/");
+      }
       fs.writeFileSync(fullPath, js, "utf8");
     }
   }
