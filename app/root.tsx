@@ -10,7 +10,7 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="ar" dir="ltr" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta
@@ -29,7 +29,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body dir="rtl">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -41,8 +41,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function Root() {
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
-      <main className="agent-native-app-main min-w-0 flex-1 overflow-y-auto overscroll-contain snap-y snap-mandatory scroll-smooth">
-        <Outlet />
+      <main
+        dir="ltr"
+        className="agent-native-app-main min-w-0 flex-1 overflow-y-auto overscroll-contain snap-y snap-mandatory scroll-smooth"
+      >
+        <div dir="rtl" className="w-full min-h-full">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

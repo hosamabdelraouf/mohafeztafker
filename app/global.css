@@ -268,19 +268,34 @@
   }
 }
 
+/* Modern Cross-Browser Scrollbar in Sovereign Primary Brand Blue (#0284C7) */
+html,
+body,
+.agent-native-app-main,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0284c7 transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.22);
-  border-radius: 3px;
+  background-color: #0284c7;
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.34);
+  background-color: #0369a1;
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: #0284c7;
 }
 
 .font-ar { font-family: "Almarai", "Inter Variable", sans-serif; }
