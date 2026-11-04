@@ -87,7 +87,7 @@ export default function SideDrawer({
         aria-label="القائمة الجانبية الرئيسية"
         aria-modal="true"
         role="dialog"
-        className={`fixed top-0 bottom-0 right-0 z-[100] flex h-full w-full sm:w-[400px] flex-col overflow-y-auto border-s border-[#CBD5E1] bg-white rounded-s-2xl shadow-2xl shadow-slate-950/40 transition-transform duration-300 ease-out will-change-transform ${
+        className={`fixed top-0 bottom-0 right-0 z-[100] flex h-full w-full sm:w-[400px] flex-col overflow-y-auto border-s border-[#CBD5E1] bg-white rounded-none shadow-2xl shadow-slate-950/40 transition-transform duration-300 ease-out will-change-transform ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
