@@ -1323,46 +1323,50 @@ function Services() {
                   perspective={900}
                   intro={false}
                   backContent={
-                    <div className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[20px] border-[1.5px] border-sky-400/50 bg-[#0B0F17] p-5 text-right text-white select-none shadow-2xl">
-                      <div>
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                    <div className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[20px] border-[1.5px] border-white/35 bg-gradient-to-br from-[#0284C7] via-[#0279B8] to-[#0369A1] p-5 text-right text-white select-none shadow-[0_20px_50px_-8px_rgba(2,132,199,0.55),0_0_35px_rgba(56,189,248,0.3)]">
+                      {/* Ambient Specular Highlight */}
+                      <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-white/20 blur-2xl" />
+                      <div className="pointer-events-none absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-sky-300/15 blur-2xl" />
+
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between border-b border-white/25 pb-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-[#38BDF8]">
+                            <span className="font-mono text-xs font-bold text-white bg-white/20 px-2 py-0.5 rounded-md shadow-xs">
                               [{item.num}]
                             </span>
-                            <h4 className="font-ar text-sm font-bold text-white leading-tight">
+                            <h4 className="font-ar text-[15px] font-bold text-white leading-tight">
                               {item.t}
                             </h4>
                           </div>
-                          <span className="font-ar text-[11px] text-slate-400">
+                          <span className="font-ar text-[11px] font-semibold text-white/90 bg-white/15 hover:bg-white/25 px-2.5 py-0.5 rounded-md transition">
                             العودة ↺
                           </span>
                         </div>
-                        <p className="font-ar mt-2.5 text-xs text-slate-400">
+                        <p className="font-ar mt-2.5 text-xs font-semibold text-sky-100">
                           مخرجات ومواصفات التسليم الهندسي:
                         </p>
                         <ul className="mt-2 space-y-1.5">
                           {item.deliverables.map((del, dIdx) => (
-                            <li key={dIdx} className="font-ar flex items-start gap-2 text-xs text-slate-200">
-                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#38BDF8]" />
-                              <span className="leading-snug">{del}</span>
+                            <li key={dIdx} className="font-ar flex items-start gap-2 text-xs text-white">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                              <span className="leading-snug font-medium text-white/95">{del}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="pt-2.5 border-t border-white/10 flex items-center justify-between">
+                      <div className="relative z-10 pt-2.5 border-t border-white/25 flex items-center justify-between">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             scrollToElementId("contact");
                           }}
-                          className="font-ar rounded-lg bg-[#0284C7] px-4 py-1.5 text-center text-xs font-bold text-white shadow-md shadow-sky-600/30 transition hover:bg-sky-500 active:scale-95"
+                          className="font-ar rounded-lg bg-white px-4 py-1.5 text-center text-xs font-bold text-[#0284C7] shadow-lg shadow-sky-950/20 transition hover:bg-sky-50 active:scale-95 cursor-pointer"
                         >
                           طلب استشارة للخدمة ←
                         </button>
-                        <span className="font-ar text-[10px] text-slate-400">
+                        <span className="font-ar text-[10px] text-sky-100/80">
                           انقر في أي مكان للقلب ↺
                         </span>
                       </div>
@@ -1422,46 +1426,50 @@ function Services() {
                   perspective={900}
                   intro={false}
                   backContent={
-                    <div className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[20px] border-[1.5px] border-sky-400/50 bg-[#0B0F17] p-5 text-right text-white select-none shadow-2xl">
-                      <div>
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                    <div className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[20px] border-[1.5px] border-white/35 bg-gradient-to-br from-[#0284C7] via-[#0279B8] to-[#0369A1] p-5 text-right text-white select-none shadow-[0_20px_50px_-8px_rgba(2,132,199,0.55),0_0_35px_rgba(56,189,248,0.3)]">
+                      {/* Ambient Specular Highlight */}
+                      <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-white/20 blur-2xl" />
+                      <div className="pointer-events-none absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-sky-300/15 blur-2xl" />
+
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between border-b border-white/25 pb-2.5">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-[#38BDF8]">
+                            <span className="font-mono text-xs font-bold text-white bg-white/20 px-2 py-0.5 rounded-md shadow-xs">
                               [{item.num}]
                             </span>
-                            <h4 className="font-ar text-sm font-bold text-white leading-tight">
+                            <h4 className="font-ar text-[15px] font-bold text-white leading-tight">
                               {item.t}
                             </h4>
                           </div>
-                          <span className="font-ar text-[11px] text-slate-400">
+                          <span className="font-ar text-[11px] font-semibold text-white/90 bg-white/15 hover:bg-white/25 px-2.5 py-0.5 rounded-md transition">
                             العودة ↺
                           </span>
                         </div>
-                        <p className="font-ar mt-2.5 text-xs text-slate-400">
+                        <p className="font-ar mt-2.5 text-xs font-semibold text-sky-100">
                           مخرجات ومواصفات التسليم الهندسي:
                         </p>
                         <ul className="mt-2 space-y-1.5">
                           {item.deliverables.map((del, dIdx) => (
-                            <li key={dIdx} className="font-ar flex items-start gap-2 text-xs text-slate-200">
-                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#38BDF8]" />
-                              <span className="leading-snug">{del}</span>
+                            <li key={dIdx} className="font-ar flex items-start gap-2 text-xs text-white">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]" />
+                              <span className="leading-snug font-medium text-white/95">{del}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="pt-2.5 border-t border-white/10 flex items-center justify-between">
+                      <div className="relative z-10 pt-2.5 border-t border-white/25 flex items-center justify-between">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             scrollToElementId("contact");
                           }}
-                          className="font-ar rounded-lg bg-[#0284C7] px-4 py-1.5 text-center text-xs font-bold text-white shadow-md shadow-sky-600/30 transition hover:bg-sky-500 active:scale-95"
+                          className="font-ar rounded-lg bg-white px-4 py-1.5 text-center text-xs font-bold text-[#0284C7] shadow-lg shadow-sky-950/20 transition hover:bg-sky-50 active:scale-95 cursor-pointer"
                         >
                           طلب استشارة للخدمة ←
                         </button>
-                        <span className="font-ar text-[10px] text-slate-400">
+                        <span className="font-ar text-[10px] text-sky-100/80">
                           انقر في أي مكان للقلب ↺
                         </span>
                       </div>
