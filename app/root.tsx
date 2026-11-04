@@ -1,58 +1,31 @@
-import { configureTracking } from "@agent-native/core/client/analytics";
-import { appPath } from "@agent-native/core/client/api-path";
-import { useDbSync } from "@agent-native/core/client/hooks";
-import { createAgentNativeQueryClient } from "@agent-native/core/client/hooks";
-import { getThemeInitScript } from "@agent-native/core/client/ui";
-import { AppProviders } from "@agent-native/toolkit/app/providers";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import type { LinksFunction } from "react-router";
-
-import { Layout as AppLayout } from "@/components/layout/Layout";
-import { AppToolkitProvider } from "@/components/ui/toolkit-provider";
-import { useNavigationState } from "@/hooks/use-navigation-state";
-import { APP_NAME, APP_TITLE } from "@/lib/app-config";
-import { TAB_ID } from "@/lib/tab-id";
+import { APP_TITLE } from "@/lib/app-config";
 
 import stylesheet from "./global.css?url";
-
-configureTracking({
-  getDefaultProps: (_name, properties) => ({
-    ...properties,
-    app: APP_NAME,
-  }),
-});
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
 
-const THEME_INIT_SCRIPT = getThemeInitScript();
-
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
         />
-        <script
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
-        />
-        {/* guard:allow-raw-color - theme-color metadata requires a concrete browser-chrome color. */}
-        <meta name="theme-color" content="#18181B" />
+        <meta name="theme-color" content="#0284c7" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
         <meta name="apple-mobile-web-app-title" content={APP_TITLE} />
-        <link rel="icon" type="image/svg+xml" href={appPath("/favicon.svg")} />
-        <link rel="apple-touch-icon" href={appPath("/icon-180.svg")} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/icon-180.svg" />
         <Meta />
         <Links />
       </head>
@@ -65,28 +38,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DbSyncSetup() {
-  const qc = useQueryClient();
-  useNavigationState();
-  useDbSync({
-    queryClient: qc,
-    ignoreSource: TAB_ID,
-  });
-  return null;
-}
-
 export default function Root() {
-  const [queryClient] = useState(() => createAgentNativeQueryClient());
   return (
-    <AppToolkitProvider>
-      <AppProviders queryClient={queryClient}>
-        <DbSyncSetup />
-        <AppLayout>
-          <Outlet />
-        </AppLayout>
-      </AppProviders>
-    </AppToolkitProvider>
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
+      <main className="agent-native-app-main min-w-0 flex-1 overflow-y-auto overscroll-contain snap-y snap-mandatory scroll-smooth">
+        <Outlet />
+      </main>
+    </div>
   );
 }
 
-export { ErrorBoundary } from "@agent-native/toolkit/app/shared";
+export function ErrorBoundary({ error }: { error: unknown }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center p-6 text-center" dir="rtl">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">عذراً، حدث خطأ غير متوقع</h1>
+        <p className="text-slate-600 mb-4">{error instanceof Error ? error.message : "يرجى تحديث الصفحة"}</p>
+        <a href="/" className="px-5 py-2.5 rounded-xl bg-[#0284c7] text-white font-bold text-sm">
+          العودة للرئيسية
+        </a>
+      </div>
+    </div>
+  );
+}
