@@ -59,6 +59,9 @@ export function meta() {
 
 const A = "https://api.builder.io/api/v1/image/assets/TEMP/";
 const withBase = (p: string) => {
+  if (!p) return "";
+  if (p.startsWith("http://") || p.startsWith("https://")) return p;
+  if (p.startsWith("/mohafeztafker/")) return p;
   const b = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
   const clean = p.replace(/^\//, "");
   return b ? `${b}/${clean}` : `/${clean}`;

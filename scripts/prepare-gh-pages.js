@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 
 const clientDir = path.resolve("build/client");
 const prerendered = path.join(clientDir, "mohafeztafker", "index.html");
@@ -12,55 +13,63 @@ if (!fs.existsSync(prerendered)) {
   process.exit(1);
 }
 
-// 1. Process index.html from prerendered
-let html = fs.readFileSync(prerendered, "utf8");
-
-// Neutralize chunk-recovery bootstrap script that causes the recovery redirect loop
-html = html.replace(
-  /<script data-agent-native-chunk-recovery-bootstrap>[\s\S]*?<\/script>/gi,
-  "<!-- chunk-recovery-disabled-for-static-pages -->"
-);
-
-fs.writeFileSync(targetIndex, html);
-fs.writeFileSync(target404, html);
-fs.writeFileSync(path.join(clientDir, "mohafeztafker", "index.html"), html);
-fs.writeFileSync(nojekyll, "");
-
-// 2. Walk all files in build/client (.html, .js, .css, .json) and rewrite root-relative paths
-const BASE = "/mohafeztafker";
-
-function processFile(filePath) {
-  let content = fs.readFileSync(filePath, "utf8");
-  let modified = false;
-
-  // Replace /assets/ with /mohafeztafker/assets/ (avoiding double prefix)
-  const newContent = content
-    .replace(/(?<!\/mohafeztafker)\/assets\//g, `${BASE}/assets/`)
-    .replace(/(?<!\/mohafeztafker)\/videos\//g, `${BASE}/videos/`)
-    .replace(/(?<!\/mohafeztafker)\/favicon\.svg/g, `${BASE}/favicon.svg`)
-    .replace(/(?<!\/mohafeztafker)\/icon-180\.svg/g, `${BASE}/icon-180.svg`)
-    .replace(/(?<!\/mohafeztafker)\/icon-192\.svg/g, `${BASE}/icon-192.svg`)
-    .replace(/(?<!\/mohafeztafker)\/icon-512\.svg/g, `${BASE}/icon-512.svg`)
-    .replace(/(?<!\/mohafeztafker)\/manifest\.json/g, `${BASE}/manifest.json`);
-
-  if (newContent !== content) {
-    fs.writeFileSync(filePath, newContent, "utf8");
-    modified = true;
-  }
-  return modified;
+// 1. Process HTML
+function patchHtml(htmlContent) {
+  return htmlContent
+    .replace(
+      /<script data-agent-native-chunk-recovery-bootstrap>[\s\S]*?<\/script>/gi,
+      "<!-- chunk-recovery-disabled -->"
+    )
+    .replace(/href="\/assets\//g, 'href="/mohafeztafker/assets/')
+    .replace(/src="\/assets\//g, 'src="/mohafeztafker/assets/')
+    .replace(/href="\/favicon\.svg"/g, 'href="/mohafeztafker/favicon.svg"')
+    .replace(/href="\/icon-180\.svg"/g, 'href="/mohafeztafker/icon-180.svg"')
+    .replace(/from "\/assets\//g, 'from "/mohafeztafker/assets/')
+    .replace(/import "\/assets\//g, 'import "/mohafeztafker/assets/')
+    .replace(/import\("\/assets\//g, 'import("/mohafeztafker/assets/');
 }
 
-function walkDir(dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      walkDir(fullPath);
-    } else if (/\.(html|js|css|json)$/i.test(entry.name)) {
-      processFile(fullPath);
+let rawHtml = fs.readFileSync(prerendered, "utf8");
+let patchedHtml = patchHtml(rawHtml);
+
+fs.writeFileSync(targetIndex, patchedHtml, "utf8");
+fs.writeFileSync(target404, patchedHtml, "utf8");
+fs.writeFileSync(path.join(clientDir, "mohafeztafker", "index.html"), patchedHtml, "utf8");
+fs.writeFileSync(nojekyll, "");
+
+// 2. Patch CSS files (fonts and background urls)
+const assetsDir = path.join(clientDir, "assets");
+if (fs.existsSync(assetsDir)) {
+  for (const file of fs.readdirSync(assetsDir)) {
+    const fullPath = path.join(assetsDir, file);
+    if (file.endsWith(".css")) {
+      let css = fs.readFileSync(fullPath, "utf8");
+      css = css
+        .replace(/url\(\/assets\//g, "url(/mohafeztafker/assets/")
+        .replace(/url\("\/assets\//g, 'url("/mohafeztafker/assets/')
+        .replace(/url\('\/assets\//g, "url('/mohafeztafker/assets/");
+      fs.writeFileSync(fullPath, css, "utf8");
+    } else if (file.startsWith("manifest-") && file.endsWith(".js")) {
+      // Patch manifest file chunk mapping
+      let js = fs.readFileSync(fullPath, "utf8");
+      js = js.replace(/(?<!\/mohafeztafker)\/assets\//g, "/mohafeztafker/assets/");
+      fs.writeFileSync(fullPath, js, "utf8");
     }
   }
 }
 
-walkDir(clientDir);
-console.log("Successfully patched all static assets with /mohafeztafker base path in build/client!");
+// 3. Ensure assets and videos are accessible at both /mohafeztafker/assets and /assets
+const subDir = path.join(clientDir, "mohafeztafker");
+if (!fs.existsSync(subDir)) {
+  fs.mkdirSync(subDir, { recursive: true });
+}
+
+// Copy assets and videos inside /mohafeztafker/ folder so both relative and prefixed requests resolve
+try {
+  execSync(`cp -R "${path.join(clientDir, "assets")}" "${path.join(subDir, "assets")}"`);
+  execSync(`cp -R "${path.join(clientDir, "videos")}" "${path.join(subDir, "videos")}"`);
+} catch (e) {
+  console.warn("Folder sync notice:", e.message);
+}
+
+console.log("Successfully prepared resilient GitHub Pages static bundle!");
