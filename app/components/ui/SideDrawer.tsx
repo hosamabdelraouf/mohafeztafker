@@ -87,14 +87,23 @@ export default function SideDrawer({
         aria-label="القائمة الجانبية الرئيسية"
         aria-modal="true"
         role="dialog"
-        className={`fixed top-0 bottom-0 right-0 z-[100] flex h-full w-full sm:w-[400px] flex-col justify-between overflow-y-auto border-s border-[#CBD5E1] bg-white rounded-s-2xl shadow-2xl shadow-slate-950/40 transition-transform duration-300 ease-out will-change-transform ${
+        className={`fixed top-0 bottom-0 right-0 z-[100] flex h-full w-full sm:w-[400px] flex-col overflow-y-auto border-s border-[#CBD5E1] bg-white rounded-s-2xl shadow-2xl shadow-slate-950/40 transition-transform duration-300 ease-out will-change-transform ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div>
-          {/* Top Header Bar: Close Button (Left) & Brand Logo (Right) */}
+          {/* Top Header Bar: Swapped: Brand Logo and Close Button */}
           <div className="flex h-[96px] items-center justify-between px-6">
-            {/* Close Circle Button on Left in RTL */}
+            {/* Brand Logo */}
+            <div className="flex items-center gap-3">
+              <img
+                src={logoSrc}
+                alt="محفز التفكير"
+                className="h-[52px] w-[52px] object-contain transition-transform hover:scale-105"
+              />
+            </div>
+
+            {/* Close Circle Button */}
             <button
               type="button"
               onClick={onClose}
@@ -103,15 +112,6 @@ export default function SideDrawer({
             >
               <IconX className="h-4.5 w-4.5 text-slate-700 stroke-[2.2]" />
             </button>
-
-            {/* Brand Logo on Right in RTL */}
-            <div className="flex items-center gap-3">
-              <img
-                src={logoSrc}
-                alt="محفز التفكير"
-                className="h-[52px] w-[52px] object-contain transition-transform hover:scale-105"
-              />
-            </div>
           </div>
 
           {/* Divider Drawer Top */}
@@ -140,29 +140,6 @@ export default function SideDrawer({
               );
             })}
           </nav>
-        </div>
-
-        {/* Bottom Drawer Footer: Action & Telemetry */}
-        <div className="p-6 pt-4 border-t border-[#E2E8F0] space-y-3 bg-slate-50/60 rounded-bl-2xl">
-          <button
-            type="button"
-            onClick={() => handleItemClick("contact")}
-            className="btn-tactile font-ar flex w-full h-12 items-center justify-center rounded-full bg-primary font-bold text-white shadow-md shadow-sky-500/25 transition-all hover:bg-sky-600 active:scale-95 cursor-pointer text-sm"
-          >
-            <span>اطلب استشارة أو عرض سعر ←</span>
-          </button>
-          <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium px-1">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              الرياض • جاهزية المنظومة 99.98%
-            </span>
-            <span
-              className="font-semibold text-slate-600"
-              style={{ fontFamily: "Geist, sans-serif" }}
-            >
-              AR / EN
-            </span>
-          </div>
         </div>
       </aside>
     </>
