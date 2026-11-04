@@ -16,7 +16,6 @@ import TechText from "@/components/ui/TechText";
 import TiltedCard from "@/components/ui/TiltedCard";
 import ReflectiveCard from "@/components/ui/ReflectiveCard";
 import ProfileCard from "@/components/ui/ProfileCard";
-import FluxLines from "@/components/ui/FluxLines";
 import SideDrawer from "@/components/ui/SideDrawer";
 import { APP_TITLE } from "@/lib/app-config";
 
@@ -724,31 +723,6 @@ function Hero() {
           isIntersecting ? "opacity-100" : "opacity-0"
         } cinematic-glow-intense`}
       />
-
-      {/* FluxLines Layer - full hero coverage in pure white; header and text overlying it */}
-      <div className="pointer-events-none absolute inset-0 z-[5] h-full w-full overflow-hidden">
-        <div style={{ width: "100%", height: "100%", position: "relative" }}>
-          <FluxLines
-            colors={["#ffffff", "#ffffff", "#ffffff"]}
-            glow={2}
-            rimWidth={0.17}
-            lineWidth={1}
-            flowDirection="down"
-            mouseInteraction
-            clickSwirl
-            speed={0.5}
-            scale={1.6}
-            turbulence={1}
-            fluidity={0.1}
-            sharpness={2.5}
-            shimmer={1.5}
-            mouseStrength={1}
-            mouseRadius={0.35}
-            intro
-            lightMode={false}
-          />
-        </div>
-      </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1200px] px-4 pb-2 text-center md:pb-4">
         <div className="dramatic-headline relative mx-auto w-full max-w-[1200px] h-[75px] sm:h-[90px] md:h-[110px] lg:h-[125px] py-1">
@@ -1671,7 +1645,7 @@ function Work() {
         } cinematic-glow`}
       />
       <ElectricCircuit inView={inView} />
-      <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center px-4">
+      <div id="products" className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center px-4">
         <Title
           inView={inView}
           stage={stage}

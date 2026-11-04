@@ -11,18 +11,18 @@ export interface SideDrawerProps {
   onNavigate?: (id: string) => void;
 }
 
-const NAV_ITEMS = [
-  { id: "hero", label: "الرئيسية", exact: true },
-  { id: "vision", label: "من نحن؟" },
-  { id: "services", label: "الخدمات" },
-  { id: "work", label: "أعمالنا" },
-  { id: "products", label: "المنتجات", target: "work" },
-  { id: "pricing", label: "الباقات والأسعار", target: "services" },
-  { id: "industries", label: "القطاعات" },
-  { id: "technologies", label: "التقنيات والتكنولوجيا", target: "vision" },
-  { id: "careers", label: "الوظائف", target: "team" },
-  { id: "faq", label: "الأسئلة الشائعة", target: "contact" },
-  { id: "blog", label: "المدونة", target: "reviews" },
+const NAV_ITEMS: { id: string; label: string; target?: string; exact?: boolean }[] = [
+  { id: "hero", label: "الرئيسية", target: "hero", exact: true },
+  { id: "vision", label: "من نحن؟", target: "vision" },
+  { id: "services", label: "الخدمات", target: "services" },
+  { id: "work", label: "أعمالنا", target: "work" },
+  { id: "products", label: "المنتجات", target: "products" },
+  { id: "pricing", label: "الباقات والأسعار" }, // Unwired
+  { id: "industries", label: "القطاعات", target: "industries" },
+  { id: "technologies", label: "التقنيات والتكنولوجيا" }, // Unwired
+  { id: "careers", label: "الوظائف" }, // Unwired
+  { id: "faq", label: "الأسئلة الشائعة" }, // Unwired
+  { id: "blog", label: "المدونة" }, // Unwired
 ];
 
 export default function SideDrawer({
@@ -54,7 +54,8 @@ export default function SideDrawer({
   }, [isOpen, onClose]);
 
   const handleItemClick = useCallback(
-    (targetId: string) => {
+    (targetId?: string) => {
+      if (!targetId) return;
       onClose();
       if (onNavigate) {
         onNavigate(targetId);
@@ -120,19 +121,24 @@ export default function SideDrawer({
           {/* Navigation Items (Exact match to Figma Component 400px) */}
           <nav className="flex flex-col space-y-1.5 px-6 py-5">
             {NAV_ITEMS.map((item) => {
+              const isWired = Boolean(item.target);
               const isActive =
-                activeId === item.id ||
-                (item.exact && (!activeId || activeId === "hero"));
+                isWired &&
+                (activeId === item.target ||
+                  (item.exact && (!activeId || activeId === "hero")));
 
               return (
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => handleItemClick(item.target || item.id)}
-                  className={`font-ar flex items-center justify-start w-full rounded-md text-right transition-all duration-200 cursor-pointer ${
+                  disabled={!isWired}
+                  onClick={isWired ? () => handleItemClick(item.target) : undefined}
+                  className={`font-ar flex items-center justify-start w-full rounded-md text-right transition-all duration-200 ${
                     isActive
-                      ? "bg-[#F1F5F9] text-[#0284C7] font-extrabold text-[19px] px-4 py-3 shadow-sm"
-                      : "text-[#0284C7] font-bold text-[18px] px-4 py-2.5 hover:bg-sky-50/80 hover:translate-x-[-3px]"
+                      ? "bg-[#F1F5F9] text-[#0284C7] font-extrabold text-[19px] px-4 py-3 shadow-sm cursor-pointer"
+                      : isWired
+                      ? "text-[#0284C7] font-bold text-[18px] px-4 py-2.5 hover:bg-sky-50/80 hover:translate-x-[-3px] cursor-pointer"
+                      : "text-[#0284C7]/60 font-bold text-[18px] px-4 py-2.5 cursor-default select-none"
                   }`}
                 >
                   <span>{item.label}</span>
