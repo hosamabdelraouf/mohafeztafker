@@ -2020,10 +2020,18 @@ function Footer() {
   return (
     <footer className="relative w-full snap-start snap-always shrink-0 border-t border-slate-300 bg-white px-6 pb-8 pt-10 md:px-[50px]">
       <div className="grid gap-10 md:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
-        <div className="flex flex-col items-center gap-4 text-center md:items-end md:text-right">
-          <img src={IMG.footerLogo} alt="" className="h-36 w-36" />
-          <div className="font-ar text-4xl font-extrabold text-slate-900">محفز التفكير للبرمجيات</div>
-          <p className="font-ar max-w-[415px] text-base text-slate-500">شريك التطوير البرمجي المؤسسي لبناء المنظومات السحابية والمنصات الوطنية عالية التزامن والسيادة الرقمية.</p>
+        <div className="flex flex-col items-start gap-4 text-right">
+          <img
+            src={IMG.footerLogo}
+            alt="محفز التفكير"
+            className="h-28 w-28 md:h-36 md:w-36 object-contain object-right self-start"
+          />
+          <div className="font-ar text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">
+            محفز التفكير للبرمجيات
+          </div>
+          <p className="font-ar max-w-[415px] text-base leading-relaxed text-slate-500">
+            شريك التطوير البرمجي المؤسسي لبناء المنظومات السحابية والمنصات الوطنية عالية التزامن والسيادة الرقمية.
+          </p>
         </div>
         <div className="text-right">
           <h4 className="font-ar mb-6 text-3xl font-bold text-slate-900">من نحن؟</h4>
