@@ -16,7 +16,82 @@ import TechText from "@/components/ui/TechText";
 import TiltedCard from "@/components/ui/TiltedCard";
 import ReflectiveCard from "@/components/ui/ReflectiveCard";
 import ProfileCard from "@/components/ui/ProfileCard";
+import FluxLines from "@/components/ui/FluxLines";
 import { APP_TITLE } from "@/lib/app-config";
+
+type DramaticStage = "idle" | "igniting" | "locked";
+
+function useDramaticStage<T extends HTMLElement = HTMLElement>(options?: {
+  threshold?: number;
+  initialInView?: boolean;
+}) {
+  const ref = useRef<T | null>(null);
+  const [stage, setStage] = useState<DramaticStage>(options?.initialInView ? "locked" : "idle");
+  const [isIntersecting, setIsIntersecting] = useState(options?.initialInView ?? false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const rootEl = document.querySelector(".agent-native-app-main") || null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsIntersecting(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setStage((prev) => (prev === "idle" ? "igniting" : prev));
+        }
+      },
+      {
+        root: rootEl,
+        threshold: options?.threshold ?? 0.2,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [options?.threshold]);
+
+  useEffect(() => {
+    if (stage === "igniting") {
+      const timer = setTimeout(() => {
+        setStage("locked");
+      }, 2200);
+      return () => clearTimeout(timer);
+    }
+  }, [stage]);
+
+  const inView = stage !== "idle";
+  return [ref, stage, inView, isIntersecting] as const;
+}
+
+function LaserHorizon() {
+  return <div className="laser-horizon pointer-events-none" aria-hidden="true" />;
+}
+
+function SpatialVoidFlare({ intense }: { intense?: boolean }) {
+  return (
+    <div
+      className={`spatial-void-flare pointer-events-none ${
+        intense ? "spatial-void-flare-intense" : ""
+      }`}
+      aria-hidden="true"
+    />
+  );
+}
+
+function SectionTelemetry({ code, label }: { code: string; label: string }) {
+  return (
+    <div className="telemetry-tag pointer-events-none absolute top-5 left-6 z-20 hidden items-center gap-2.5 font-mono text-[10px] tracking-wider text-slate-400 select-none md:flex">
+      <span className="relative flex h-2 w-2">
+        <span className="ping-ring absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-500" />
+      </span>
+      <span className="font-semibold text-slate-500">[{code}]</span>
+      <span className="text-slate-300">/</span>
+      <span className="text-sky-500/90 font-medium">{label}</span>
+    </div>
+  );
+}
 
 function useInView<T extends HTMLElement = HTMLElement>(options?: {
   threshold?: number;
@@ -89,6 +164,18 @@ const IMG = {
   circuit2: `${A}3b98e15955c8c4455d98f9c353ebdd74eedeb01f?width=2880`,
   avatar: `${A}1a11fe0d17be075dfe9ae893ccb85013c37259fa?width=188`,
 };
+
+function ElectricCircuit({ inView }: { inView: boolean }) {
+  return (
+    <img
+      src={IMG.circuit}
+      alt=""
+      className={`pointer-events-none absolute -left-24 top-0 hidden h-full transition-all duration-1000 ease-cinematic lg:block ${
+        inView ? "opacity-75 scale-100" : "opacity-20 scale-105"
+      }`}
+    />
+  );
+}
 
 const btn =
   "btn-tactile font-ar inline-flex items-center justify-center rounded-full bg-primary font-bold text-white shadow-lg shadow-sky-500/25";
@@ -387,31 +474,39 @@ function Title({
   sub,
   dark,
   inView = true,
+  stage,
 }: {
   children: React.ReactNode;
   sub?: string;
   dark?: boolean;
   inView?: boolean;
+  stage?: DramaticStage;
 }) {
   return (
     <div className="mx-auto max-w-5xl px-4 text-center">
       <h2
-        className={`font-ar text-4xl font-extrabold transition-all duration-700 ease-cinematic md:text-6xl ${
+        className={`font-ar text-4xl font-extrabold py-2 leading-[1.3] md:text-6xl md:leading-[1.22] md:py-3.5 ${
           dark ? "text-white" : "text-slate-900"
         } ${
-          inView
-            ? "translate-y-0 opacity-100 scale-100"
-            : "translate-y-6 opacity-0 scale-[0.97]"
+          stage !== undefined
+            ? "dramatic-headline"
+            : `transition-all duration-700 ease-cinematic ${
+                inView
+                  ? "translate-y-0 opacity-100 scale-100"
+                  : "translate-y-6 opacity-0 scale-[0.97]"
+              }`
         }`}
       >
         {children}
       </h2>
       {sub && (
         <p
-          className={`font-ar mt-4 text-lg text-slate-600 transition-all duration-700 delay-100 ease-cinematic md:text-3xl ${
-            inView
-              ? "translate-y-0 opacity-100"
-              : "translate-y-4 opacity-0"
+          className={`font-ar mt-4 text-lg text-slate-600 py-1 leading-relaxed md:text-3xl ${
+            stage !== undefined
+              ? "dramatic-sub"
+              : `transition-all duration-700 delay-100 ease-cinematic ${
+                  inView ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+                }`
           }`}
         >
           {sub}
@@ -520,15 +615,19 @@ function Header() {
 }
 
 function Hero() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.25, initialInView: true });
+  const [ref, stage, inView, isIntersecting] = useDramaticStage<HTMLDivElement>({
+    threshold: 0.25,
+    initialInView: true,
+  });
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const isInitialMount = useRef(true);
 
+  // Initial setup: ensure silent / muted
   useEffect(() => {
     const video = heroVideoRef.current;
     if (video) {
       video.muted = true;
-      video.defaultMuted = true;
       video.volume = 0;
       if (video.readyState >= 2) {
         setIsVideoReady(true);
@@ -536,12 +635,40 @@ function Hero() {
     }
   }, []);
 
+  // Replay hero video once scrolled to
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+
+    if (isIntersecting) {
+      // If returning to Hero after having scrolled away, replay from beginning
+      if (!isInitialMount.current) {
+        video.currentTime = 0;
+      }
+      isInitialMount.current = false;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          video.muted = true;
+          video.play().catch(() => {});
+        });
+      }
+    } else {
+      video.pause();
+    }
+  }, [isIntersecting]);
+
   return (
     <section
       id="hero"
       ref={ref}
-      className="relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-end overflow-hidden bg-slate-950 pb-4 md:pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-end overflow-hidden bg-slate-950 pb-4 md:pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare intense />
+      <SectionTelemetry code="SEC-01" label="SOVEREIGN_CORE // RIYADH" />
+
       <div className="font-ar absolute inset-x-0 top-0 z-40 flex h-[38px] items-center justify-center bg-[#004E77] px-4 text-center text-[11px] font-bold text-slate-50">
         إعلان: إطلاق محرك راصد والحلول السيادية للقطاعات الحكومية في المملكة
         <button
@@ -552,16 +679,7 @@ function Hero() {
         </button>
       </div>
 
-      {/* Fallback image with smooth opacity fade */}
-      <img
-        src={IMG.hero}
-        alt=""
-        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
-          isVideoReady ? "opacity-35" : "opacity-90"
-        }`}
-      />
-
-      {/* Shimmering Glow Loading Indicator for Hero Video */}
+      {/* Shimmering Glow Loading Indicator for Hero Video (active before video loads) */}
       <div
         className={`pointer-events-none absolute inset-0 z-10 transition-opacity duration-1000 ${
           !isVideoReady ? "opacity-100" : "opacity-0"
@@ -575,16 +693,15 @@ function Hero() {
         src={withBase("/videos/hero.mp4")}
         autoPlay
         muted
-        defaultMuted
         playsInline
         preload="auto"
         onLoadedData={() => setIsVideoReady(true)}
         onCanPlay={() => setIsVideoReady(true)}
         onPlaying={() => setIsVideoReady(true)}
         className={`absolute inset-0 h-full w-full object-cover will-change-[filter,opacity,transform] transition-all duration-1200 ease-cinematic ${
-          isVideoReady && inView
+          isVideoReady && isIntersecting
             ? "opacity-100 blur-none scale-100"
-            : !inView
+            : !isIntersecting
             ? "opacity-35 blur-md scale-105"
             : "opacity-0 blur-2xl scale-108"
         }`}
@@ -596,18 +713,37 @@ function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-black/25 to-black/80" />
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
-          inView ? "opacity-100" : "opacity-0"
+          isIntersecting ? "opacity-100" : "opacity-0"
         } cinematic-glow-intense`}
       />
 
+      {/* FluxLines Layer - full hero coverage in pure white; header and text overlying it */}
+      <div className="pointer-events-none absolute inset-0 z-[5] h-full w-full overflow-hidden">
+        <div style={{ width: "100%", height: "100%", position: "relative" }}>
+          <FluxLines
+            colors={["#ffffff", "#ffffff", "#ffffff"]}
+            glow={2}
+            rimWidth={0.17}
+            lineWidth={1}
+            flowDirection="down"
+            mouseInteraction
+            clickSwirl
+            speed={0.5}
+            scale={1.6}
+            turbulence={1}
+            fluidity={0.1}
+            sharpness={2.5}
+            shimmer={1.5}
+            mouseStrength={1}
+            mouseRadius={0.35}
+            intro
+            lightMode={false}
+          />
+        </div>
+      </div>
+
       <div className="relative z-10 mx-auto w-full max-w-[1200px] px-4 pb-2 text-center md:pb-4">
-        <div
-          className={`relative mx-auto w-full max-w-[1200px] h-[65px] sm:h-[80px] md:h-[100px] lg:h-[115px] transition-all duration-700 ease-cinematic ${
-            inView
-              ? "translate-y-0 opacity-100 scale-100"
-              : "translate-y-6 opacity-0 scale-[0.98]"
-          }`}
-        >
+        <div className="dramatic-headline relative mx-auto w-full max-w-[1200px] h-[75px] sm:h-[90px] md:h-[110px] lg:h-[125px] py-1">
           <h1 className="sr-only">نطور أنظمة رقمية تقود مستقبل أعمالك</h1>
           <TechText
             text="نطور أنظمة رقمية تقود مستقبل أعمالك"
@@ -639,11 +775,7 @@ function Hero() {
           />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-400/60 to-transparent" />
         </div>
-        <p
-          className={`font-ar mx-auto mt-2 max-w-[1153px] text-lg leading-[1.3] text-slate-200 drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] transition-all duration-700 delay-150 ease-cinematic md:text-[30px] ${
-            inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-          }`}
-        >
+        <p className="dramatic-sub font-ar mx-auto mt-2 max-w-[1153px] text-lg leading-[1.3] text-slate-200 drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] md:text-[30px]">
           شريككم الهندسي لتطوير المنصات المؤسسية وتطبيقات الجوال والذكاء الاصطناعي وفق أعلى معايير الأمان والسرعة وحفظ البيانات محلياً.
         </p>
       </div>
@@ -710,7 +842,7 @@ const VISION_VIDEO_DATA = [
 ];
 
 function Vision() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.25 });
   const [step, setStep] = useState(0);
   const [isFading, setIsFading] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
@@ -822,30 +954,25 @@ function Vision() {
     <section
       id="vision"
       ref={ref}
-      className="relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare />
+      <SectionTelemetry code="SEC-02" label="VISION_AND_PURPOSE" />
+
       {/* Ambient Radial Spotlight */}
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow`}
       />
-      <img
-        src={IMG.circuit}
-        alt=""
-        className={`pointer-events-none absolute -left-24 top-0 hidden h-full transition-all duration-1000 ease-cinematic lg:block ${
-          inView ? "opacity-75 scale-100" : "opacity-20 scale-105"
-        }`}
-      />
+      <ElectricCircuit inView={inView} />
       {/* RTL: Text on the RIGHT (first child), Image Mockup on the LEFT (second child) */}
       <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-10 px-6 lg:flex-row lg:px-16">
         {/* Right Column: Stepper and Text */}
         <div className="flex w-full items-center gap-8 md:gap-12 lg:gap-14 lg:w-auto lg:flex-1 lg:justify-start">
-          <div
-            className={`relative flex flex-col justify-between items-center h-[340px] md:h-[360px] w-[68px] md:w-[78px] shrink-0 transition-all duration-700 delay-100 ease-cinematic ${
-              inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-            }`}
-          >
+          <div className="delaminate-card delaminate-stagger-1 relative flex flex-col justify-between items-center h-[340px] md:h-[360px] w-[68px] md:w-[78px] shrink-0">
             {/* Solid connector spine line sticking exactly from circle 0 to circle 2 */}
             <div className="absolute top-[34px] bottom-[34px] md:top-[38px] md:bottom-[38px] w-0.5 bg-[#CCD6E0] z-0" />
             {steps.map((s, i) => {
@@ -875,11 +1002,7 @@ function Vision() {
               );
             })}
           </div>
-          <div
-            className={`flex-1 text-right pr-6 md:pr-10 lg:pr-14 transition-all duration-300 ease-out lg:max-w-[580px] ${
-              inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-            }`}
-          >
+          <div className="flex-1 text-right pr-6 md:pr-10 lg:pr-14 transition-all duration-300 ease-out lg:max-w-[580px]">
             <div
               className={`transition-all duration-200 ease-out ${
                 isFading
@@ -887,34 +1010,28 @@ function Vision() {
                   : "opacity-100 translate-y-0 scale-100"
               }`}
             >
-              <h2 className="font-ar text-5xl font-extrabold text-slate-900 md:text-[96px] md:leading-[1.15]">
+              <h2 className="dramatic-headline font-ar text-5xl font-extrabold text-slate-900 py-2 md:py-4 leading-[1.25] md:text-[96px] md:leading-[1.18]">
                 {heads[step]}
               </h2>
-              <p className="font-ar mt-4 text-lg font-bold leading-[1.35] text-slate-600 md:text-[26px]">
+              <p className="dramatic-sub font-ar mt-4 text-lg font-bold leading-[1.4] text-slate-600 py-1 md:text-[26px]">
                 {bodies[step]}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleNextStep}
-              className={`${btn} mt-6 h-16 px-8 text-2xl ${
-                inView ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-              }`}
-            >
-              <span>{step === 2 ? "العودة للرؤية" : "اعرف اكثر"}</span>
-              <span className="btn-arrow ms-2 inline-block">{step === 2 ? "↺" : "←"}</span>
-            </button>
+            <div className="tactile-snap">
+              <button
+                type="button"
+                onClick={handleNextStep}
+                className={`${btn} mt-6 h-16 px-8 text-2xl`}
+              >
+                <span>{step === 2 ? "العودة للرؤية" : "اعرف اكثر"}</span>
+                <span className="btn-arrow ms-2 inline-block">{step === 2 ? "↺" : "←"}</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Left Column: Interactive Video Card with Play/Pause button */}
-        <div
-          className={`w-full max-w-[480px] shrink-0 rounded-[20px] border border-[#CCD6E0] bg-white p-4 transition-all duration-700 delay-150 ease-cinematic md:max-w-[520px] md:p-5 ${
-            inView
-              ? "translate-y-0 opacity-100 scale-100 shadow-[0_30px_70px_-12px_rgba(2,132,199,0.3),0_0_40px_rgba(56,189,248,0.15)] ring-1 ring-sky-400/30"
-              : "translate-y-8 opacity-0 scale-[0.95] shadow-none ring-0"
-          }`}
-        >
+        <div className="delaminate-card delaminate-stagger-2 specular-glint-active w-full max-w-[480px] shrink-0 rounded-[20px] border border-[#CCD6E0] bg-white p-4 shadow-[0_30px_70px_-12px_rgba(2,132,199,0.3),0_0_40px_rgba(56,189,248,0.15)] ring-1 ring-sky-400/30 md:max-w-[520px] md:p-5">
           <div className="flex h-9 items-center justify-between px-1.5">
             <span
               className={`font-ar text-[12px] font-bold text-slate-600 transition-opacity duration-200 ${
@@ -1033,7 +1150,7 @@ function Vision() {
 }
 
 function Industries() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.25 });
   const [activeIdx, setActiveIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isFading, setIsFading] = useState(false);
@@ -1114,27 +1231,29 @@ function Industries() {
     <section
       id="industries"
       ref={ref}
-      className="relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden border-t border-slate-200 bg-slate-50 pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden border-t border-slate-200 bg-slate-50 pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare />
+      <SectionTelemetry code="SEC-03" label="STRATEGIC_INDUSTRIES" />
+
       {/* Ambient Spotlight */}
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow`}
       />
+      <ElectricCircuit inView={inView} />
 
       {/* RTL: Text on the RIGHT (first child), Carousel tiles on the LEFT (second child) */}
       <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-10 px-6 lg:flex-row lg:px-16">
         {/* Right Column: Title, Subtitle, Contextual Dynamic Card, CTA */}
-        <div
-          className={`flex w-full flex-col text-right transition-all duration-700 delay-100 ease-cinematic lg:max-w-[580px] ${
-            inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-          }`}
-        >
-          <h2 className="font-ar text-5xl font-extrabold text-slate-900 md:text-[96px] md:leading-[1.15]">
+        <div className="flex w-full flex-col text-right lg:max-w-[580px]">
+          <h2 className="dramatic-headline font-ar text-5xl font-extrabold text-slate-900 py-2 md:py-4 leading-[1.25] md:text-[96px] md:leading-[1.18]">
             القطاعات
           </h2>
-          <p className="font-ar mt-4 text-base font-bold leading-relaxed text-slate-600 md:text-[22px]">
+          <p className="dramatic-sub font-ar mt-4 text-base font-bold leading-relaxed text-slate-600 py-1 md:text-[22px]">
             حلول برمجية سيادية مصممة خصيصاً لتلبية المتطلبات التشغيلية والأمنية الحساسة في كبرى القطاعات الوطنية.
           </p>
 
@@ -1148,7 +1267,7 @@ function Industries() {
                 scrollToElementId("services");
               }
             }}
-            className="group/infocard mt-5 min-h-[148px] cursor-pointer rounded-2xl border border-[#CCD6E0] bg-white/90 p-5 shadow-sm backdrop-blur-sm transition-all duration-300 ease-out select-none hover:-translate-y-1 hover:scale-[1.02] hover:border-primary hover:bg-gradient-to-br hover:from-white hover:to-sky-50/70 hover:shadow-2xl hover:shadow-sky-500/20 hover:ring-2 hover:ring-sky-400/25 active:scale-[0.98] active:shadow-md active:bg-sky-50/80"
+            className="delaminate-card delaminate-stagger-1 group/infocard mt-5 min-h-[148px] cursor-pointer rounded-2xl border border-[#CCD6E0] bg-white/90 p-5 shadow-sm backdrop-blur-sm transition-all duration-300 ease-out select-none hover:-translate-y-1 hover:scale-[1.02] hover:border-primary hover:bg-gradient-to-br hover:from-white hover:to-sky-50/70 hover:shadow-2xl hover:shadow-sky-500/20 hover:ring-2 hover:ring-sky-400/25 active:scale-[0.98] active:shadow-md active:bg-sky-50/80"
           >
             <div
               className={`transition-all duration-300 ease-out ${
@@ -1178,11 +1297,7 @@ function Industries() {
             </div>
           </div>
 
-          <div
-            className={`transition-all duration-700 delay-200 ease-cinematic ${
-              inView ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
+          <div className="tactile-snap">
             <button
               onClick={() => scrollToElementId("services")}
               className={`${btn} mt-6 h-16 w-fit px-8 text-2xl`}
@@ -1195,7 +1310,7 @@ function Industries() {
 
         {/* Left Column: Vertical Carousel Wheel with scrolling bar on the LEFT of the cards */}
         <div
-          className="relative flex w-full max-w-[540px] flex-col gap-3.5 pe-8 ps-1"
+          className="delaminate-card delaminate-stagger-2 relative flex w-full max-w-[540px] flex-col gap-3.5 pe-8 ps-1"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onWheel={handleWheel}
@@ -1267,30 +1382,30 @@ function Industries() {
 }
 
 function Services() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.2 });
 
   return (
     <section
       id="services"
       ref={ref}
-      className="relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare />
+      <SectionTelemetry code="SEC-04" label="ENGINEERING_CAPABILITIES" />
+
       {/* Ambient Radial Spotlight */}
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow`}
       />
-      <img
-        src={IMG.circuit2}
-        alt=""
-        className={`pointer-events-none absolute inset-x-0 top-[351px] hidden w-full transition-all duration-1000 ease-cinematic md:block ${
-          inView ? "opacity-60 scale-100" : "opacity-20 scale-105"
-        }`}
-      />
+      <ElectricCircuit inView={inView} />
       <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center px-4 text-center">
         <Title
           inView={inView}
+          stage={stage}
           sub="كل بطاقة تمثل ركيزة هندسية ثلاثية الأبعاد تتكشف بتفاعل فيزيائي وقابلة للقلب لاستكشاف مخرجاتها التقنية."
         >
           خدماتنا
@@ -1299,9 +1414,7 @@ function Services() {
 
       {/* Infinite Horizontal Continuous Marquee Track */}
       <div
-        className={`relative mt-4 w-full overflow-hidden marquee-fade-mask py-2 transition-all duration-700 delay-150 ease-cinematic ${
-          inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
+        className="delaminate-card delaminate-stagger-2 relative mt-4 w-full overflow-hidden marquee-fade-mask py-2"
         dir="ltr"
       >
         <div className="animate-services-marquee">
@@ -1531,33 +1644,40 @@ function Services() {
 }
 
 function Work() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.25 });
 
   return (
     <section
       id="work"
       ref={ref}
-      className="relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-slate-50 pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-slate-50 pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare />
+      <SectionTelemetry code="SEC-05" label="CASE_STUDIES_AND_IMPACT" />
+
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow`}
       />
+      <ElectricCircuit inView={inView} />
       <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center px-4">
-        <Title inView={inView} sub="منصات وطنية أحدثت فارقاً تشغيلياً وتجارياً حقيقياً في السوق السعودي.">
+        <Title
+          inView={inView}
+          stage={stage}
+          sub="منصات وطنية أحدثت فارقاً تشغيلياً وتجارياً حقيقياً في السوق السعودي."
+        >
           أعمالنا وأثرنا الموثق بالأرقام
         </Title>
         <div className="mx-auto mt-8 flex w-full max-w-[1100px] flex-wrap justify-center gap-6 px-4">
           {work.map((w, idx) => (
             <div
               key={w.t}
-              style={{ transitionDelay: inView ? `${150 + idx * 100}ms` : "0ms" }}
-              className={`w-full max-w-[480px] shrink-0 transition-all duration-700 ease-cinematic ${
-                inView
-                  ? "translate-y-0 opacity-100 scale-100"
-                  : "translate-y-8 opacity-0 scale-[0.96]"
-              }`}
+              className={`delaminate-card ${
+                idx === 0 ? "delaminate-stagger-1" : "delaminate-stagger-2"
+              } w-full max-w-[480px] shrink-0`}
             >
               <ReflectiveCard
                 videoSrc={withBase("/videos/hero.mp4")}
@@ -1599,11 +1719,7 @@ function Work() {
             </div>
           ))}
         </div>
-        <div
-          className={`mt-8 text-center transition-all duration-700 delay-300 ease-cinematic ${
-            inView ? "translate-y-0 opacity-100 scale-100" : "translate-y-4 opacity-0 scale-95"
-          }`}
-        >
+        <div className="tactile-snap mt-8 text-center">
           <button
             onClick={() => scrollToElementId("team")}
             className={`${btn} h-16 px-8 text-xl`}
@@ -1618,28 +1734,36 @@ function Work() {
 }
 
 function Team() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.25 });
   const teamList = TEAM_CARDS.map(withBase);
   const list = [...teamList, ...teamList, ...teamList];
   return (
     <section
       id="team"
       ref={ref}
-      className="relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare />
+      <SectionTelemetry code="SEC-06" label="LEADERSHIP_AND_EXPERTS" />
+
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow`}
       />
+      <ElectricCircuit inView={inView} />
       <div className="relative w-full">
-        <Title inView={inView} sub="نخبة من المهندسين والمعماريين يقودون تطوير الحلول البرمجية السيادية للمملكة.">
+        <Title
+          inView={inView}
+          stage={stage}
+          sub="نخبة من المهندسين والمعماريين يقودون تطوير الحلول البرمجية السيادية للمملكة."
+        >
           فريق القيادة والخبراء
         </Title>
         <div
-          className={`relative mt-8 w-full overflow-hidden marquee-fade-mask py-3 transition-all duration-700 delay-150 ease-cinematic ${
-            inView ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-[0.98]"
-          }`}
+          className="delaminate-card delaminate-stagger-2 relative mt-8 w-full overflow-hidden marquee-fade-mask py-3"
           dir="ltr"
         >
           <div className="animate-team-marquee">
@@ -1695,33 +1819,44 @@ function Team() {
 }
 
 function Reviews() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.25 });
 
   return (
     <section
       id="reviews"
       ref={ref}
-      className="relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-slate-50 pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[720px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-slate-50 pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare />
+      <SectionTelemetry code="SEC-07" label="CLIENT_TESTIMONIALS" />
+
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow`}
       />
+      <ElectricCircuit inView={inView} />
       <div className="relative mx-auto w-full max-w-[1240px] px-4">
-        <Title inView={inView} sub="تجارب حقيقية لقيادات تقنية في كبرى الجهات والمنشآت الوطنية التي اعتمدت على أنظمتنا البرمجية.">
+        <Title
+          inView={inView}
+          stage={stage}
+          sub="تجارب حقيقية لقيادات تقنية في كبرى الجهات والمنشآت الوطنية التي اعتمدت على أنظمتنا البرمجية."
+        >
           شهادات شركاء النجاح وقادة التحول الرقمي
         </Title>
         <div className="mx-auto mt-10 grid max-w-[1200px] gap-6 px-4 md:grid-cols-2 lg:grid-cols-3">
           {reviews.map((r, idx) => (
             <figure
               key={r.n}
-              style={{ transitionDelay: inView ? `${120 + idx * 80}ms` : "0ms" }}
-              className={`rounded-[20px] border border-[#CCD6E0] bg-white p-5 shadow-sm transition-all duration-700 ease-cinematic hover:shadow-lg hover:border-sky-300 ${
-                inView
-                  ? "translate-y-0 opacity-100 scale-100"
-                  : "translate-y-8 opacity-0 scale-[0.96]"
-              }`}
+              className={`delaminate-card ${
+                idx === 0
+                  ? "delaminate-stagger-1"
+                  : idx === 1
+                  ? "delaminate-stagger-2"
+                  : "delaminate-stagger-3"
+              } rounded-[20px] border border-[#CCD6E0] bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-sky-300`}
             >
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#D8D8D8]">
@@ -1743,27 +1878,35 @@ function Reviews() {
 }
 
 function Partners() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.25 });
   const partnerLogos = [...logos, ...logos, ...logos];
   return (
     <section
       id="partners"
       ref={ref}
-      className="relative flex h-screen min-h-[700px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[700px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white pb-6 pt-[96px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare />
+      <SectionTelemetry code="SEC-08" label="INSTITUTIONAL_PARTNERS" />
+
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow`}
       />
+      <ElectricCircuit inView={inView} />
       <div className="relative w-full">
-        <Title inView={inView} sub="أكثر من 50 جهة حكومية ومنشأة وطنية كبرى تعتمد على بنيتنا البرمجية الآمنة.">
+        <Title
+          inView={inView}
+          stage={stage}
+          sub="أكثر من 50 جهة حكومية ومنشأة وطنية كبرى تعتمد على بنيتنا البرمجية الآمنة."
+        >
           شركاء النجاح
         </Title>
         <div
-          className={`relative mt-12 w-full overflow-hidden marquee-fade-mask py-4 transition-all duration-700 delay-150 ease-cinematic ${
-            inView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-          }`}
+          className="delaminate-card delaminate-stagger-2 relative mt-12 w-full overflow-hidden marquee-fade-mask py-4"
           dir="ltr"
         >
           <div className="animate-partners-marquee">
@@ -1781,11 +1924,7 @@ function Partners() {
             </div>
           </div>
         </div>
-        <div
-          className={`mt-10 text-center transition-all duration-700 delay-250 ease-cinematic ${
-            inView ? "translate-y-0 opacity-100 scale-100" : "translate-y-4 opacity-0 scale-95"
-          }`}
-        >
+        <div className="tactile-snap mt-10 text-center">
           <button
             onClick={() => scrollToElementId("contact")}
             className={`${btn} h-[80px] px-10 text-[26px]`}
@@ -1800,7 +1939,7 @@ function Partners() {
 }
 
 function ContactForm() {
-  const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.25 });
+  const [ref, stage, inView] = useDramaticStage<HTMLDivElement>({ threshold: 0.2 });
   const [chip, setChip] = useState(0);
   const field = "font-ar h-11 w-full rounded-[10px] border border-slate-700 bg-white px-4 text-right text-xs text-slate-900 placeholder:text-slate-500";
   const label = "font-ar mb-1.5 block text-right text-xs font-bold text-slate-200";
@@ -1808,23 +1947,25 @@ function ContactForm() {
     <section
       id="contact"
       ref={ref}
-      className="relative flex h-screen min-h-[780px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white px-4 pb-4 pt-[96px] md:px-[60px]"
+      data-stage={stage}
+      className="dramatic-stage relative flex h-screen min-h-[780px] w-full snap-start snap-always shrink-0 flex-col items-center justify-center overflow-hidden bg-white px-4 pb-4 pt-[96px] md:px-[60px]"
     >
+      <LaserHorizon />
+      <SpatialVoidFlare intense />
+      <SectionTelemetry code="SEC-09" label="DIRECT_CTO_CONSULTATION" />
+
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ease-cinematic ${
           inView ? "opacity-100" : "opacity-0"
         } cinematic-glow-intense`}
       />
+      <ElectricCircuit inView={inView} />
       <form
         onSubmit={(e) => e.preventDefault()}
-        className={`relative mx-auto w-full max-w-[1200px] rounded-3xl bg-primary px-6 py-8 shadow-xl transition-all duration-700 delay-100 ease-cinematic md:px-[64px] md:py-10 ${
-          inView
-            ? "translate-y-0 opacity-100 scale-100 shadow-[0_35px_90px_-15px_rgba(2,132,199,0.5),0_0_60px_rgba(56,189,248,0.2)] ring-1 ring-white/20"
-            : "translate-y-8 opacity-0 scale-[0.96] shadow-none ring-0"
-        }`}
+        className="delaminate-card delaminate-stagger-1 specular-glint-active relative mx-auto w-full max-w-[1200px] rounded-3xl bg-primary px-6 py-8 shadow-xl md:px-[64px] md:py-10"
       >
-        <h2 className="font-ar text-center text-2xl font-bold text-white md:text-[28px]">جاهز لبناء منصتك البرمجية القادمة؟</h2>
-        <p className="font-ar mt-2 text-center text-xs text-white md:text-[14px]">
+        <h2 className="dramatic-headline font-ar text-center text-2xl font-bold text-white py-1.5 md:py-2 md:text-[28px]">جاهز لبناء منصتك البرمجية القادمة؟</h2>
+        <p className="dramatic-sub font-ar mt-2 text-center text-xs text-white py-0.5 md:text-[14px]">
           أدخل بيانات مشروعك وسيتواصل معك أحد كبار مهندسينا خلال ساعتي عمل لمناقشة المتطلبات وتقديم العرض الفني والمالي.
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -1849,7 +1990,7 @@ function ContactForm() {
         <label className={`${label} mt-4`}>تفاصيل ونطاق العمل المبدئي (اختياري)</label>
         <textarea rows={2} className={`${field} h-16 py-2.5`} placeholder="اكتب نبذة مختصرة عن أهداف المنصة، التكاملات المطلوبة، أو أي مواعيد نهائية مستهدفة للإطلاق..." />
         <div className="mt-5 flex flex-col-reverse items-center gap-4 md:flex-row-reverse md:justify-between">
-          <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row-reverse">
+          <div className="tactile-snap flex w-full flex-col gap-3 md:w-auto md:flex-row-reverse">
             <button type="submit" className="btn-tactile-white font-ar h-[46px] w-full rounded-xl bg-white text-xs font-bold text-slate-900 shadow-lg md:w-[320px]">
               <span>إرسال طلب الاستشارة وعرض السعر</span>
               <span className="btn-arrow ms-1.5 inline-block">←</span>

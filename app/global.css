@@ -539,5 +539,316 @@
   transform: translateX(-4px);
 }
 
+/* ==========================================================================
+   The Sovereign Horizon & Spatial Delamination Protocol (SHSD-Protocol)
+   Architectural 4-Act 2200ms Entrance Engine for Saudi Class A Enterprise
+   ========================================================================== */
+
+/* 3D Perspective Stage Container */
+.dramatic-stage {
+  perspective: 1400px;
+  perspective-origin: 50% 25%;
+}
+
+/* Act I: Optical Laser Horizon Sweep (RTL-native right-to-left sweep) */
+.laser-horizon {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1.5px;
+  z-index: 30;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(56, 189, 248, 0.15) 20%,
+    rgba(56, 189, 248, 0.6) 70%,
+    rgba(56, 189, 248, 0.95) 98%,
+    #38bdf8 100%
+  );
+  transform: scaleX(0);
+  transform-origin: right center; /* Strict Arabic RTL calibration */
+  opacity: 0;
+  transition:
+    transform 800ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 450ms ease;
+  will-change: transform, opacity;
+}
+
+[data-stage="igniting"] .laser-horizon,
+[data-stage="locked"] .laser-horizon {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Act I: Spatial Void Radial Ambient Flare */
+.spatial-void-flare {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(56, 189, 248, 0.08) 0%,
+    rgba(2, 132, 199, 0.03) 45%,
+    transparent 75%
+  );
+  transform: scale(0.9);
+  opacity: 0;
+  transition:
+    transform 1400ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 1000ms ease;
+  will-change: transform, opacity;
+}
+
+.spatial-void-flare-intense {
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(56, 189, 248, 0.14) 0%,
+    rgba(2, 132, 199, 0.06) 50%,
+    transparent 80%
+  );
+}
+
+[data-stage="igniting"] .spatial-void-flare,
+[data-stage="locked"] .spatial-void-flare {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Act I: Telemetry Monospace Watermark */
+.telemetry-tag {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 600ms ease 150ms,
+    transform 600ms cubic-bezier(0.16, 1, 0.3, 1) 150ms;
+}
+
+[data-stage="igniting"] .telemetry-tag,
+[data-stage="locked"] .telemetry-tag {
+  opacity: 0.85;
+  transform: translateY(0);
+}
+
+/* Act II: Kicker Badge Architectural Rise */
+.dramatic-kicker {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 700ms ease 300ms,
+    transform 800ms cubic-bezier(0.16, 1, 0.3, 1) 300ms;
+}
+
+[data-stage="igniting"] .dramatic-kicker,
+[data-stage="locked"] .dramatic-kicker {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Act II: Monolithic Horizon Headline Decryption & Lens Focus Pull */
+.dramatic-headline {
+  display: block;
+  padding-block: 0.22em; /* Generous breathing padding for Arabic dots, hamzas, and ascenders */
+  clip-path: inset(-40px -20px 100% -20px);
+  filter: blur(12px) brightness(1.2);
+  transform: translateY(32px) rotateX(6deg);
+  opacity: 0;
+  overflow: visible !important;
+  transition:
+    clip-path 1000ms cubic-bezier(0.16, 1, 0.3, 1) 400ms,
+    filter 1100ms cubic-bezier(0.16, 1, 0.3, 1) 400ms,
+    transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) 400ms,
+    opacity 700ms ease 400ms;
+  will-change: clip-path, filter, transform, opacity;
+}
+
+[data-stage="igniting"] .dramatic-headline {
+  clip-path: inset(-40px -20px -40px -20px);
+  filter: blur(0px) brightness(1);
+  transform: translateY(0) rotateX(0deg);
+  opacity: 1;
+}
+
+[data-stage="locked"] .dramatic-headline {
+  clip-path: none !important;
+  filter: none !important;
+  transform: none !important;
+  opacity: 1;
+}
+
+/* Act II: Editorial Subtitle Precision Unfurl */
+.dramatic-sub {
+  display: block;
+  padding-block: 0.18em;
+  filter: blur(6px);
+  transform: translateY(22px);
+  opacity: 0;
+  overflow: visible !important;
+  transition:
+    filter 900ms cubic-bezier(0.16, 1, 0.3, 1) 600ms,
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 600ms,
+    opacity 800ms ease 600ms;
+  will-change: filter, transform, opacity;
+}
+
+[data-stage="igniting"] .dramatic-sub {
+  filter: blur(0px);
+  transform: translateY(0);
+  opacity: 1;
+}
+
+[data-stage="locked"] .dramatic-sub {
+  filter: none !important;
+  transform: none !important;
+  opacity: 1;
+}
+
+/* Act III: Z-Axis Spatial Delamination for Cards & Stages */
+.delaminate-card {
+  transform: perspective(1400px) translate3d(0, 48px, -60px) rotateX(4deg) scale(0.94);
+  filter: blur(8px);
+  opacity: 0;
+  transition:
+    transform 1200ms cubic-bezier(0.2, 0.9, 0.2, 1),
+    filter 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 800ms ease;
+  will-change: transform, filter, opacity;
+}
+
+[data-stage="igniting"] .delaminate-card,
+[data-stage="locked"] .delaminate-card {
+  transform: perspective(1400px) translate3d(0, 0, 0) rotateX(0deg) scale(1);
+  filter: blur(0px);
+  opacity: 1;
+}
+
+/* Domino Wave Stagger Delays (850ms to 1450ms) */
+[data-stage="igniting"] .delaminate-stagger-1,
+[data-stage="locked"] .delaminate-stagger-1 {
+  transition-delay: 850ms;
+}
+
+[data-stage="igniting"] .delaminate-stagger-2,
+[data-stage="locked"] .delaminate-stagger-2 {
+  transition-delay: 970ms;
+}
+
+[data-stage="igniting"] .delaminate-stagger-3,
+[data-stage="locked"] .delaminate-stagger-3 {
+  transition-delay: 1090ms;
+}
+
+[data-stage="igniting"] .delaminate-stagger-4,
+[data-stage="locked"] .delaminate-stagger-4 {
+  transition-delay: 1210ms;
+}
+
+[data-stage="igniting"] .delaminate-stagger-5,
+[data-stage="locked"] .delaminate-stagger-5 {
+  transition-delay: 1330ms;
+}
+
+[data-stage="igniting"] .delaminate-stagger-6,
+[data-stage="locked"] .delaminate-stagger-6 {
+  transition-delay: 1450ms;
+}
+
+/* Act IV: Tactile Telemetry Snap */
+.tactile-snap {
+  transform: translateY(16px) scale(0.96);
+  opacity: 0;
+  transition:
+    transform 800ms cubic-bezier(0.34, 1.56, 0.64, 1) 1600ms,
+    opacity 600ms ease 1600ms;
+  will-change: transform, opacity;
+}
+
+[data-stage="igniting"] .tactile-snap,
+[data-stage="locked"] .tactile-snap {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Radar Telemetry Ping */
+@keyframes telemetry-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.ping-ring {
+  animation: telemetry-ping 2000ms cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Specular Glint Sweep */
+@keyframes specular-sheen {
+  0% {
+    transform: translateX(140%) rotate(25deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(-140%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+.specular-glint-active {
+  position: relative;
+  overflow: hidden;
+}
+
+.specular-glint-active::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  opacity: 0;
+}
+
+[data-stage="igniting"] .specular-glint-active::after {
+  animation: specular-sheen 1200ms cubic-bezier(0.16, 1, 0.3, 1) 1300ms 1 normal forwards;
+}
+
+/* Reduced Motion Safeguard */
+@media (prefers-reduced-motion: reduce) {
+  .laser-horizon,
+  .spatial-void-flare,
+  .telemetry-tag,
+  .dramatic-kicker,
+  .dramatic-headline,
+  .dramatic-sub,
+  .delaminate-card,
+  .tactile-snap {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+    opacity: 1 !important;
+  }
+  .ping-ring,
+  .specular-glint-active::after {
+    animation: none !important;
+  }
+}
+
 
 
