@@ -17,6 +17,7 @@ import TiltedCard from "@/components/ui/TiltedCard";
 import ReflectiveCard from "@/components/ui/ReflectiveCard";
 import ProfileCard from "@/components/ui/ProfileCard";
 import FluxLines from "@/components/ui/FluxLines";
+import SideDrawer from "@/components/ui/SideDrawer";
 import { APP_TITLE } from "@/lib/app-config";
 
 type DramaticStage = "idle" | "igniting" | "locked";
@@ -516,7 +517,7 @@ function Title({
   );
 }
 
-function Header() {
+function Header({ onOpenDrawer }: { onOpenDrawer: () => void }) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -548,7 +549,14 @@ function Header() {
     >
       {/* Right side in RTL: Menu & Logo */}
       <div className="flex items-center gap-3 md:gap-5">
-        <IconMenu2 className="h-7 w-7 cursor-pointer text-white transition hover:opacity-80" />
+        <button
+          type="button"
+          onClick={onOpenDrawer}
+          aria-label="فتح القائمة الجانبية"
+          className="group flex items-center justify-center rounded-xl p-2 text-white transition hover:bg-white/15 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400/50"
+        >
+          <IconMenu2 className="h-7 w-7 text-white transition-transform duration-200 group-hover:scale-110" />
+        </button>
         <img
           src={IMG.logo}
           alt="محفز التفكير"
@@ -2048,9 +2056,16 @@ function Footer() {
 }
 
 export default function HomeRoute() {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   return (
     <div dir="rtl" lang="ar" className="font-ar relative min-h-full w-full flex-1 bg-white">
-      <Header />
+      <Header onOpenDrawer={() => setIsDrawerOpen(true)} />
+      <SideDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        logoSrc={IMG.logo}
+      />
       <Hero />
       <Vision />
       <Industries />
