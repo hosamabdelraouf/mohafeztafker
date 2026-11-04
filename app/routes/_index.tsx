@@ -522,12 +522,17 @@ function Header() {
 function Hero() {
   const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.25, initialInView: true });
   const heroVideoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
   useEffect(() => {
-    if (heroVideoRef.current) {
-      heroVideoRef.current.muted = true;
-      heroVideoRef.current.defaultMuted = true;
-      heroVideoRef.current.volume = 0;
+    const video = heroVideoRef.current;
+    if (video) {
+      video.muted = true;
+      video.defaultMuted = true;
+      video.volume = 0;
+      if (video.readyState >= 2) {
+        setIsVideoReady(true);
+      }
     }
   }, []);
 
@@ -546,17 +551,42 @@ function Hero() {
           عرض التفاصيل ←
         </button>
       </div>
+
+      {/* Fallback image with smooth opacity fade */}
+      <img
+        src={IMG.hero}
+        alt=""
+        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
+          isVideoReady ? "opacity-35" : "opacity-90"
+        }`}
+      />
+
+      {/* Shimmering Glow Loading Indicator for Hero Video */}
+      <div
+        className={`pointer-events-none absolute inset-0 z-10 transition-opacity duration-1000 ${
+          !isVideoReady ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div className="hero-loading-glow absolute inset-0" />
+      </div>
+
       <video
         ref={heroVideoRef}
         src={withBase("/videos/hero.mp4")}
-        poster={IMG.hero}
         autoPlay
         muted
         defaultMuted
         playsInline
         preload="auto"
-        className={`absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-cinematic ${
-          inView ? "scale-100" : "scale-105"
+        onLoadedData={() => setIsVideoReady(true)}
+        onCanPlay={() => setIsVideoReady(true)}
+        onPlaying={() => setIsVideoReady(true)}
+        className={`absolute inset-0 h-full w-full object-cover will-change-[filter,opacity,transform] transition-all duration-1200 ease-cinematic ${
+          isVideoReady && inView
+            ? "opacity-100 blur-none scale-100"
+            : !inView
+            ? "opacity-35 blur-md scale-105"
+            : "opacity-0 blur-2xl scale-108"
         }`}
         onEnded={(e) => {
           e.currentTarget.pause();
@@ -683,6 +713,7 @@ function Vision() {
   const [ref, inView] = useInView<HTMLDivElement>({ threshold: 0.3 });
   const [step, setStep] = useState(0);
   const [isFading, setIsFading] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -703,6 +734,7 @@ function Vision() {
   const handleStepTransition = useCallback(
     (targetStep: number) => {
       if (targetStep === step || isFading) return;
+      setIsVideoLoading(true);
       setIsFading(true);
       setTimeout(() => {
         setStep(targetStep);
@@ -904,6 +936,25 @@ function Vision() {
               isFading ? "opacity-0" : "opacity-100"
             }`}
           >
+            {/* Shimmering Loading State Indicator for Vision Video */}
+            <div
+              className={`pointer-events-none absolute inset-0 z-10 overflow-hidden transition-opacity duration-500 ${
+                isVideoLoading ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm" />
+              <div className="video-shimmer-sweep absolute inset-0" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex items-center gap-2 rounded-full border border-sky-400/30 bg-slate-900/80 px-3.5 py-1.5 shadow-[0_0_24px_rgba(2,132,199,0.35)] backdrop-blur-md">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-500" />
+                  </span>
+                  <span className="font-ar text-[11px] font-bold text-sky-200">جاري المعالجة...</span>
+                </div>
+              </div>
+            </div>
+
             <video
               ref={videoRef}
               key={visionVideos[step].src}
@@ -911,7 +962,14 @@ function Vision() {
               playsInline
               preload="auto"
               loop
-              className="h-full w-full object-cover object-center"
+              className={`h-full w-full object-cover object-center will-change-[filter,opacity,transform] transition-all duration-700 ease-cinematic ${
+                isVideoLoading
+                  ? "opacity-35 blur-xl scale-104"
+                  : "opacity-100 blur-none scale-100"
+              }`}
+              onLoadStart={() => setIsVideoLoading(true)}
+              onLoadedData={() => setIsVideoLoading(false)}
+              onCanPlay={() => setIsVideoLoading(false)}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               onEnded={() => setIsPlaying(false)}
